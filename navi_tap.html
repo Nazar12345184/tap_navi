@@ -1,0 +1,657 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>NAVI TAP — офіційний клікер</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            user-select: none;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body {
+            background: linear-gradient(145deg, #e0eaf5 0%, #cbdbe6 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-family: 'Segoe UI', 'Montserrat', 'Inter', system-ui, -apple-system, sans-serif;
+            padding: 16px;
+        }
+
+        .game-container {
+            max-width: 480px;
+            width: 100%;
+            background: rgba(255, 255, 255, 0.75);
+            backdrop-filter: blur(12px);
+            border-radius: 48px;
+            padding: 20px 16px 32px;
+            box-shadow: 0 25px 40px rgba(0, 0, 0, 0.15), inset 0 1px 1px rgba(255, 255, 255, 0.8);
+            border: 1px solid rgba(255, 255, 255, 0.6);
+            transition: all 0.2s;
+        }
+
+        .stats {
+            background: rgba(255, 255, 255, 0.6);
+            border-radius: 48px;
+            padding: 12px 20px;
+            margin-bottom: 24px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border: 1px solid rgba(0, 0, 0, 0.1);
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+        }
+
+        .coin-box, .energy-box {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            background: rgba(0, 0, 0, 0.1);
+            padding: 6px 18px;
+            border-radius: 60px;
+            font-weight: bold;
+            backdrop-filter: blur(2px);
+        }
+
+        .coin-icon, .energy-icon {
+            font-size: 26px;
+        }
+
+        .coin-value {
+            font-size: 28px;
+            font-weight: 800;
+            color: #1e2a3a;
+            text-shadow: none;
+            letter-spacing: 0.5px;
+        }
+
+        .energy-value {
+            font-size: 24px;
+            font-weight: 800;
+            color: #1e3a5f;
+        }
+
+        .tap-power {
+            background: rgba(255, 255, 255, 0.6);
+            border-radius: 40px;
+            padding: 10px 20px;
+            margin-bottom: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 10px;
+            border: 1px solid rgba(0, 0, 0, 0.08);
+        }
+
+        .level-badge {
+            background: rgba(30, 40, 60, 0.15);
+            border-radius: 32px;
+            padding: 6px 18px;
+            font-size: 14px;
+            font-weight: bold;
+            color: #1f2a44;
+        }
+
+        .power-badge {
+            font-size: 20px;
+            font-weight: bold;
+            background: rgba(0, 0, 0, 0.08);
+            padding: 6px 18px;
+            border-radius: 32px;
+            color: #1e2f3e;
+            border: 1px solid rgba(0, 0, 0, 0.1);
+        }
+
+        .tap-area {
+            display: flex;
+            justify-content: center;
+            margin: 20px 0 20px;
+            position: relative;
+        }
+
+        .tap-button {
+            cursor: pointer;
+            transition: transform 0.08s linear;
+            will-change: transform;
+            border-radius: 50%;
+            width: 230px;
+            height: 230px;
+        }
+
+        .tap-button:active {
+            transform: scale(0.94);
+        }
+
+        .tap-button img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            border-radius: 50%;
+            box-shadow: 0 20px 30px rgba(0, 0, 0, 0.15), inset 0 1px 2px rgba(255, 255, 255, 0.9);
+            border: 3px solid rgba(255, 255, 255, 0.9);
+            background: white;
+        }
+
+        .tap-hint {
+            margin-top: 16px;
+            font-size: 13px;
+            color: #334155;
+            text-transform: uppercase;
+            font-weight: 500;
+            text-align: center;
+        }
+
+        .floating-number {
+            position: fixed;
+            pointer-events: none;
+            font-size: 34px;
+            font-weight: 800;
+            color: #1e293b;
+            text-shadow: 0 0 8px #ffdd77, 0 2px 4px rgba(0,0,0,0.1);
+            z-index: 1000;
+            animation: floatUp 0.7s ease-out forwards;
+            font-family: monospace;
+            white-space: nowrap;
+        }
+
+        @keyframes floatUp {
+            0% {
+                opacity: 1;
+                transform: translateY(0px) scale(0.8);
+            }
+            70% {
+                opacity: 0.9;
+                transform: translateY(-70px) scale(1.1);
+            }
+            100% {
+                opacity: 0;
+                transform: translateY(-130px) scale(0.6);
+            }
+        }
+
+        .upgrade-section {
+            background: rgba(255, 255, 255, 0.7);
+            border-radius: 32px;
+            padding: 18px 16px;
+            margin-top: 20px;
+            backdrop-filter: blur(4px);
+            border: 1px solid rgba(0, 0, 0, 0.08);
+        }
+
+        .section-title {
+            font-size: 18px;
+            font-weight: bold;
+            margin-bottom: 16px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            color: #0f172a;
+            letter-spacing: 0.5px;
+            border-left: 3px solid #f5b042;
+            padding-left: 12px;
+        }
+
+        .upgrade-grid {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .upgrade-card {
+            background: rgba(255, 255, 255, 0.85);
+            border-radius: 28px;
+            padding: 12px 16px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 10px;
+            transition: 0.1s;
+            border: 1px solid rgba(0, 0, 0, 0.08);
+            box-shadow: 0 2px 6px rgba(0,0,0,0.03);
+        }
+
+        .upgrade-info {
+            flex: 2;
+        }
+
+        .upgrade-name {
+            font-weight: 800;
+            font-size: 16px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            color: #0f172a;
+        }
+
+        .upgrade-desc {
+            font-size: 12px;
+            color: #334155;
+        }
+
+        .upgrade-cost {
+            font-weight: bold;
+            background: rgba(0, 0, 0, 0.08);
+            padding: 6px 14px;
+            border-radius: 40px;
+            font-size: 14px;
+            color: #1e293b;
+            border: 1px solid rgba(0, 0, 0, 0.1);
+        }
+
+        .buy-btn {
+            background: linear-gradient(95deg, #2d3a4e, #1e2a3a);
+            border: none;
+            padding: 8px 22px;
+            border-radius: 60px;
+            font-weight: bold;
+            font-size: 15px;
+            color: white;
+            cursor: pointer;
+            transition: 0.07s linear;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+        }
+
+        .buy-btn:active {
+            transform: scale(0.96);
+            background: #3a4a62;
+        }
+
+        .buy-btn.disabled {
+            background: #a0aabb;
+            color: #4a5568;
+            pointer-events: none;
+            opacity: 0.6;
+        }
+
+        .telegram-note {
+            margin-top: 18px;
+            text-align: center;
+            font-size: 11px;
+            color: #334155;
+            background: rgba(255,255,240,0.7);
+            border-radius: 50px;
+            padding: 6px 12px;
+            width: fit-content;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        footer {
+            font-size: 11px;
+            text-align: center;
+            margin-top: 18px;
+            color: #475569;
+        }
+
+        @media (max-width: 450px) {
+            .tap-button { width: 180px; height: 180px; }
+        }
+    </style>
+</head>
+<body>
+<div class="game-container" id="gameRoot">
+    <div class="stats">
+        <div class="coin-box">
+            <span class="coin-icon">💎</span>
+            <span class="coin-value" id="coinsDisplay">0</span>
+        </div>
+        <div class="energy-box">
+            <span class="energy-icon">⚡</span>
+            <span class="energy-value" id="energyDisplay">1000</span>
+            <span style="font-size: 14px; color:#1e2a3a;">/ <span id="maxEnergySpan">1000</span></span>
+        </div>
+    </div>
+
+    <div class="tap-power">
+        <span class="level-badge" id="levelText">🔹 НОВАЧОК</span>
+        <span class="power-badge">💢 TAP POWER: +<span id="tapPowerValue">1</span></span>
+    </div>
+
+    <div class="tap-area">
+        <div class="tap-button" id="tapButton">
+            <img src="https://raw.githubusercontent.com/Nazar12345184/tap_navi/main/natus_vincere_logo.jpg" 
+                 alt="NAVI Logo"
+                 onerror="this.onerror=null; this.src='https://upload.wikimedia.org/wikipedia/commons/thumb/b/b9/Natus_Vincere_logo.svg/1200px-Natus_Vincere_logo.svg.png';"
+                 crossorigin="anonymous">
+        </div>
+        <div class="tap-hint">▼ TAP TO EARN ▼</div>
+    </div>
+
+    <div class="upgrade-section">
+        <div class="section-title">
+            ⚙️ ПРОКАЧКА NAVI
+        </div>
+        <div class="upgrade-grid" id="upgradesList"></div>
+    </div>
+    
+    <div class="telegram-note" id="telegramStatus">
+        📱 Готово до Telegram WebApp
+    </div>
+    <footer>Клікай по лого NAVI · Тратиться 1 енергія · Відновлення 5 енергії / 2 сек</footer>
+</div>
+
+<script>
+    // ------------------------------------------------------------------
+    //  NAVI TAP — із зображенням логотипу з GitHub
+    // ------------------------------------------------------------------
+    
+    // ----- Ігрові змінні -----
+    let coins = 0;
+    let energy = 1000;
+    let currentMaxEnergy = 1000;
+    let baseTapFromUpgrades = 1;
+    let level = 1;
+    
+    let critChance = 0;
+    const CRIT_MULTIPLIER = 2;
+    
+    // ----- Функції -----
+    function computeTapPower() {
+        let levelBonus = level - 1;
+        return baseTapFromUpgrades + levelBonus;
+    }
+    
+    function updateTapPowerUI() {
+        document.getElementById('tapPowerValue').innerText = computeTapPower();
+    }
+    
+    function showFloatingText(text, colorHint = "#1e293b", x = null, y = null) {
+        const div = document.createElement('div');
+        div.className = 'floating-number';
+        div.innerText = text;
+        div.style.color = "#1f2a44";
+        div.style.textShadow = "0 0 10px #ffcc77";
+        const posX = (x !== null) ? x : window.innerWidth / 2 - 40;
+        const posY = (y !== null) ? y : window.innerHeight / 2 - 50;
+        div.style.left = posX + 'px';
+        div.style.top = posY + 'px';
+        document.body.appendChild(div);
+        setTimeout(() => { div.remove(); }, 700);
+    }
+    
+    function updateLevelByCoins() {
+        let newLevel = 1;
+        if (coins >= 12000) newLevel = 11;
+        else if (coins >= 8000) newLevel = 10;
+        else if (coins >= 5000) newLevel = 9;
+        else if (coins >= 3000) newLevel = 8;
+        else if (coins >= 1800) newLevel = 7;
+        else if (coins >= 1000) newLevel = 6;
+        else if (coins >= 500) newLevel = 5;
+        else if (coins >= 250) newLevel = 4;
+        else if (coins >= 100) newLevel = 3;
+        else if (coins >= 40) newLevel = 2;
+        else newLevel = 1;
+        
+        if (newLevel !== level) {
+            level = newLevel;
+            showFloatingText(`🏆 РІВЕНЬ ${level} ДОСЯГНУТО! +${level-1} до сили`, "#ffaa33");
+            updateTapPowerUI();
+            updateLevelText();
+        } else {
+            updateLevelText();
+        }
+        updateTapPowerUI();
+    }
+    
+    function updateLevelText() {
+        let title = "🔹 НОВАЧОК";
+        if (level >= 10) title = "👑 ЛЕГЕНДА NAVI";
+        else if (level >= 8) title = "⚡ ЕЛІТНИЙ КЛІКЕР";
+        else if (level >= 6) title = "🔥 ВЕТЕРАН КЛАЦАННЯ";
+        else if (level >= 4) title = "🎯 ДОСВІДЧЕНИЙ";
+        else if (level >= 2) title = "🌟 КАДЕТ";
+        document.getElementById('levelText').innerHTML = `${title} (lvl ${level})`;
+    }
+    
+    function updateUI() {
+        document.getElementById('coinsDisplay').innerText = Math.floor(coins);
+        document.getElementById('energyDisplay').innerText = Math.floor(energy);
+        document.getElementById('maxEnergySpan').innerText = currentMaxEnergy;
+        updateLevelByCoins();
+        renderUpgrades();
+        saveGameToTelegram();
+    }
+    
+    // ----- ТАП: енергія витрачається -----
+    function getTapCoords(event) {
+        let clientX, clientY;
+        if (event.touches) {
+            clientX = event.touches[0].clientX;
+            clientY = event.touches[0].clientY;
+        } else {
+            clientX = event.clientX;
+            clientY = event.clientY;
+        }
+        return { x: clientX - 20, y: clientY - 40 };
+    }
+    
+    function onTap(event) {
+        if (energy <= 0) {
+            showFloatingText("❌ НЕМАЄ ЕНЕРГІЇ! ЗАЧЕКАЙТЕ", "#cc5500", event.clientX, event.clientY);
+            return;
+        }
+        
+        let gain = computeTapPower();
+        let isCritical = false;
+        if (critChance > 0 && Math.random() * 100 < critChance) {
+            gain = Math.floor(gain * CRIT_MULTIPLIER);
+            isCritical = true;
+        }
+        
+        const energyCost = 1;
+        if (energy >= energyCost) {
+            energy -= energyCost;
+            coins += gain;
+            const coords = getTapCoords(event);
+            if (isCritical) {
+                showFloatingText(`💥 КРИТ! +${gain}`, "#ff8800", coords.x, coords.y);
+                if (navigator.vibrate) navigator.vibrate(70);
+            } else {
+                showFloatingText(`+${gain}`, "#1e293b", coords.x, coords.y);
+                if (navigator.vibrate) navigator.vibrate(30);
+            }
+            updateUI();
+            
+            const tapDiv = document.querySelector('.tap-button');
+            if (tapDiv) {
+                tapDiv.style.transform = "scale(0.94)";
+                setTimeout(() => { if(tapDiv) tapDiv.style.transform = ""; }, 100);
+            }
+        } else {
+            showFloatingText("⚠️ НЕДОСТАТНЬО ЕНЕРГІЇ", "#ff5555", event.clientX, event.clientY);
+        }
+    }
+    
+    // ----- Апгрейди -----
+    let upgrades = [
+        { 
+            id: "tap_train", name: "🎯 ТРЕНУВАННЯ ТАПУ", desc: "Збільшує силу кліку на +1", 
+            baseCost: 50, costMultiplier: 1.55, boughtCount: 0, maxLevel: 25,
+            effect: () => { baseTapFromUpgrades += 1; updateTapPowerUI(); }
+        },
+        { 
+            id: "energy_cap", name: "🔋 РОЗШИРЕННЯ ЕНЕРГІЇ", desc: "Збільшує MAX енергію на 50", 
+            baseCost: 90, costMultiplier: 1.65, boughtCount: 0, maxLevel: 12,
+            effect: () => { 
+                currentMaxEnergy += 50; 
+                if (energy > currentMaxEnergy) energy = currentMaxEnergy;
+                updateUI();
+            }
+        },
+        { 
+            id: "crit_up", name: "🍀 КРИТИЧНИЙ ШАНС", desc: "Збільшує шанс криту на +6% (макс 60%)", 
+            baseCost: 140, costMultiplier: 1.8, boughtCount: 0, maxLevel: 10,
+            effect: () => { 
+                critChance = Math.min(60, upgrades.find(u => u.id === "crit_up").boughtCount * 6);
+                updateUI();
+            }
+        }
+    ];
+    
+    function renderUpgrades() {
+        const container = document.getElementById('upgradesList');
+        if (!container) return;
+        container.innerHTML = '';
+        
+        upgrades.forEach(up => {
+            const currentCost = Math.floor(up.baseCost * Math.pow(up.costMultiplier, up.boughtCount));
+            const canBuy = (coins >= currentCost && up.boughtCount < up.maxLevel);
+            const card = document.createElement('div');
+            card.className = 'upgrade-card';
+            card.innerHTML = `
+                <div class="upgrade-info">
+                    <div class="upgrade-name">${up.name} [${up.boughtCount}/${up.maxLevel}]</div>
+                    <div class="upgrade-desc">${up.desc}</div>
+                </div>
+                <div class="upgrade-cost">💰 ${currentCost}</div>
+                <button class="buy-btn ${!canBuy ? 'disabled' : ''}" data-id="${up.id}">Покращити</button>
+            `;
+            const btn = card.querySelector('.buy-btn');
+            if (canBuy) {
+                btn.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    if (coins >= currentCost && up.boughtCount < up.maxLevel) {
+                        coins -= currentCost;
+                        up.boughtCount++;
+                        up.effect();
+                        updateTapPowerUI();
+                        updateUI();
+                        showFloatingText(`${up.name} +1 рівень!`, "#2c5f2d");
+                        renderUpgrades();
+                    }
+                });
+            } else {
+                btn.disabled = true;
+            }
+            container.appendChild(card);
+        });
+    }
+    
+    // ----- Регенерація енергії -----
+    let regenInterval = setInterval(() => {
+        if (energy < currentMaxEnergy) {
+            let regenValue = 5;
+            let newEnergy = Math.min(currentMaxEnergy, energy + regenValue);
+            if (newEnergy !== energy) {
+                energy = newEnergy;
+                updateUI();
+            }
+        }
+    }, 2000);
+    
+    // ========== ІНТЕГРАЦІЯ З ТЕЛЕГРАМ ==========
+    let tg = null;
+    let telegramReady = false;
+    
+    function initTelegram() {
+        if (window.Telegram && window.Telegram.WebApp) {
+            tg = window.Telegram.WebApp;
+            tg.expand();
+            tg.enableClosingConfirmation();
+            telegramReady = true;
+            document.getElementById('telegramStatus').innerHTML = '✅ Підключено до Telegram · Прогрес зберігається';
+            loadGameFromTelegram();
+        } else {
+            document.getElementById('telegramStatus').innerHTML = '🎮 Гра працює в браузері';
+        }
+    }
+    
+    function saveGameToTelegram() {
+        if (!telegramReady || !tg || typeof tg.CloudStorage === 'undefined') return;
+        const gameData = {
+            coins: coins,
+            energy: energy,
+            currentMaxEnergy: currentMaxEnergy,
+            baseTapFromUpgrades: baseTapFromUpgrades,
+            level: level,
+            critChance: critChance,
+            upgrades: upgrades.map(up => ({ id: up.id, boughtCount: up.boughtCount }))
+        };
+        try {
+            tg.CloudStorage.setItem('navi_tap_save', JSON.stringify(gameData), (err) => {
+                if (err) console.warn("save error", err);
+            });
+        } catch(e) {}
+    }
+    
+    function loadGameFromTelegram() {
+        if (!telegramReady || !tg || typeof tg.CloudStorage === 'undefined') return;
+        tg.CloudStorage.getItem('navi_tap_save', (err, value) => {
+            if (err || !value) {
+                resetToDefaults();
+                updateUI();
+                return;
+            }
+            try {
+                const data = JSON.parse(value);
+                coins = data.coins || 0;
+                energy = (data.energy !== undefined && data.energy <= currentMaxEnergy) ? data.energy : 1000;
+                currentMaxEnergy = data.currentMaxEnergy || 1000;
+                baseTapFromUpgrades = data.baseTapFromUpgrades || 1;
+                level = data.level || 1;
+                critChance = data.critChance || 0;
+                if (data.upgrades) {
+                    data.upgrades.forEach(savedUp => {
+                        const found = upgrades.find(u => u.id === savedUp.id);
+                        if (found) found.boughtCount = savedUp.boughtCount || 0;
+                    });
+                    const critUp = upgrades.find(u => u.id === "crit_up");
+                    if (critUp) critChance = Math.min(60, critUp.boughtCount * 6);
+                }
+                if (energy > currentMaxEnergy) energy = currentMaxEnergy;
+                if (energy < 0) energy = 0;
+                updateTapPowerUI();
+                updateUI();
+                showFloatingText("💾 Прогрес завантажено", "#2c5f2d");
+            } catch(e) { resetToDefaults(); }
+        });
+    }
+    
+    function resetToDefaults() {
+        coins = 0;
+        energy = 1000;
+        currentMaxEnergy = 1000;
+        baseTapFromUpgrades = 1;
+        level = 1;
+        critChance = 0;
+        upgrades.forEach(u => u.boughtCount = 0);
+        updateTapPowerUI();
+        updateUI();
+    }
+    
+    let autoSaveInterval = setInterval(() => {
+        if (telegramReady) saveGameToTelegram();
+    }, 8000);
+    
+    function attachEvents() {
+        const tapZone = document.getElementById('tapButton');
+        if (tapZone) {
+            tapZone.addEventListener('click', onTap);
+            tapZone.addEventListener('touchstart', (e) => { e.preventDefault(); onTap(e); });
+        }
+    }
+    
+    function startGame() {
+        attachEvents();
+        initTelegram();
+        updateUI();
+    }
+    
+    window.addEventListener('beforeunload', () => {
+        if (regenInterval) clearInterval(regenInterval);
+        if (autoSaveInterval) clearInterval(autoSaveInterval);
+        if (telegramReady && tg) saveGameToTelegram();
+    });
+    
+    startGame();
+</script>
+</body>
+</html>
